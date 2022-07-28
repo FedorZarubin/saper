@@ -2,37 +2,32 @@ import React from 'react';
 import Square from "./Square";
 
 class Board extends React.Component {
-    renderSquare(i) {
-      // console.log(this.props);
-      const isWin = this.props.winLine ? this.props.winLine.indexOf(i) >= 0 : false;
-      return (
+    renderSquare(i,rX,cX) {
+     return (
         <Square 
-          value={this.props.squares[i]}
-          onClick={ () => {this.props.onClick(i)} }
-          key={i}
-          isWin={isWin}
+          // isMine={false}
+          value={i[1]}
+          handleClick={ (e) => {this.props.handleClick(rX,cX,e)} }
+          key={rX+"/"+cX}
         />
       );
     }
     
-    renderRow(i,x) {
-      const sqSet = i.map((n) => {
-        return this.renderSquare(n)
+    renderRow(i,rowIndex) {
+      const sqSet = i.map((n,cellIndex) => {
+        return this.renderSquare(n,rowIndex,cellIndex)
       });
       return React.createElement(
         'div',
-        {className: 'board-row',key: x},
+        {className: 'board-row',key: rowIndex},
         sqSet
       );
     }
   
     render() { 
-      // let boardMap = [[0,1,2],[3,4,5],[6,7,8]];
-      let boardMap = Array(3).fill(Array(3).fill(0)).map((i, index) => { 
-        return i.map((j,sIndex) => {return index*3+sIndex}) 
-      });
-      const rowSet = boardMap.map((n,index) => {
-        return this.renderRow(n,index)
+      const cellMap = this.props.cellMap;
+      const rowSet = cellMap.map((n,rowIndex) => {
+        return this.renderRow(n,rowIndex)
       });
       return React.createElement(
         "div",
@@ -40,25 +35,6 @@ class Board extends React.Component {
         rowSet
       )
       
-    //   return (
-        // <div>
-        //   <div className="board-row">
-        //     {this.renderSquare(0)}
-        //     {this.renderSquare(1)}
-        //     {this.renderSquare(2)}
-        //   </div>
-    //       <div className="board-row">
-    //         {this.renderSquare(3)}
-    //         {this.renderSquare(4)}
-    //         {this.renderSquare(5)}
-    //       </div>
-    //       <div className="board-row">
-    //         {this.renderSquare(6)}
-    //         {this.renderSquare(7)}
-    //         {this.renderSquare(8)}
-    //       </div>
-    //     </div>
-    //   );
     }
   }
 

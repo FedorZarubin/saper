@@ -1,106 +1,86 @@
 import React from 'react';
 import Board from './Board';
+import FieldSettings from './FieldSettings';
 
 class Game extends React.Component {
     constructor(props) {
       super(props);
       this.state = {
-        history: [{
-          squares:[]
-        }],
-        turnNumber: 0,
-        isXNext: true,
-        winner: [false, null, null]
+        cellMap: null,
+        gameStatus: "Let's begin!",
+        minesLeft: null
       };
-      this.handleClick = this.handleClick.bind(this)
+      this.handleClick = this.handleClick.bind(this);
+      this.handleSettings = this.handleSettings.bind(this)
     }
   
-    handleClick (i) {
-      const history = this.state.history;
-      const cur_squares = history[history.length -1].squares;
-      const squares = cur_squares.slice();
-      if (this.state.winner[0] || squares[i]) {
-        return
-      };
-      squares[i] = this.state.isXNext ? "X" : "O";
-      const winner = this.calculateWinner(squares);
-      this.setState({
-        history: history.concat([{squares:squares}]), 
-        turnNumber: history.length,
-        isXNext: !this.state.isXNext,
-        winner: winner
-      })
-    }
-  
-    jumpTo (num) {
-      const history = this.state.history;
-      // console.log(history.slice(0,num));
-      this.setState({
-        history: history.slice(0,num+1),
-        turnNumber: num,
-        isXNext: (num % 2) === 0,
-        winner: [false, null, null]
-      })
-    }
-  
-    calculateWinner(squares) {
-      const lines = [
-        [0, 1, 2],
-        [3, 4, 5],
-        [6, 7, 8],
-        [0, 3, 6],
-        [1, 4, 7],
-        [2, 5, 8],
-        [0, 4, 8],
-        [2, 4, 6],
-      ];
-      for (let i = 0; i < lines.length; i++) {
-        const [a, b, c] = lines[i];
-        if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
-          return [true, squares[a],lines[i]];
-        }
+    handleClick (r,c,e) {
+      e.preventDefault();
+      const button = e.button;
+      if (button===2) {
+        const flag = this.state.cellMap[r][c][1];
+        const minesLeft = flag ? this.state.minesLeft+1 : this.state.minesLeft-1;
+        const newMap = JSON.parse(JSON.stringify(this.state.cellMap));
+        newMap[r][c][1] = !flag;
+        this.setState({
+          cellMap:newMap,
+          minesLeft: minesLeft
+        })
       }
-      return [false, null, null];
+
     }
-  
-    hilight(line){
-      document.querySelectorAll()
+
+    handleSettings (e) {
+      e.preventDefault();
+      const size = {
+        w: Number(e.target.w.value),
+        h: Number(e.target.h.value)
+      };
+      const difclt = e.target.d.value;
+      const shuffle = function (array) {
+        for (let i = array.length - 1; i > 0; i--) {
+          let j = Math.floor(Math.random() * (i + 1)); 
+          [array[i], array[j]] = [array[j], array[i]];
+        };
+        return array;
+      };
+      const mineCount = Math.round(size.h*size.w*difclt/100);
+      const mineMask = shuffle(Array(size.h*size.w).fill([true,false],0,mineCount).fill([false,false],mineCount));
+      const cellMap = [];
+      for (let i=0; i<mineMask.length; i+=size.w) {
+        cellMap.push(mineMask.slice(i,i+size.w));
+      }
+      console.log(cellMap);
+      this.setState({
+        cellMap: cellMap,
+        minesLeft: mineCount
+      })
     }
-  
+      
     render() {
-      const history = this.state.history;
-      const cur_squares = history[history.length -1].squares;
-      let status;
-      if (this.state.winner[0]) {
-        status = this.state.winner[1] + " won!"
-      } else if (history.length>9) {
-        status = "Draw!"
-      } else {
-        status = 'Next player: ' + (this.state.isXNext ? "X" : "O")
-      }
-      const moves = history.map((turn, turnNum) => {
-        if (turnNum !== 0) {
-          const descr = turnNum === 1 ? "Back to Start" : "Back to turn #" + (turnNum);
-          return (
-            <li key={turnNum}>
-            <button onClick={() => this.jumpTo(turnNum-1)}>{descr}</button>
-          </li>
-          );
-        }
-      });
-  
+      const cellMap = this.state.cellMap;
+      const gameStatus = this.state.gameStatus;
+      const minesLeft = this.state.minesLeft;
+      
+      if (!cellMap) {
+        return (
+          <FieldSettings
+          handleSettings={this.handleSettings}
+          defDifclt={15}
+          />
+        );
+      };
       return (
         <div className="game">
           <div className="game-board">
               <Board 
-              squares={cur_squares}
-              onClick={this.handleClick}
-              winLine={this.state.winner[2]}
+              cellMap={cellMap}
+              handleClick={this.handleClick}
               />
           </div>
           <div className="game-info">
-            <div>{status}</div>
-            <ol>{moves}</ol>
+            <div>{gameStatus}</div>
+            <div>Mines left: {minesLeft}</div>
           </div>
         </div>
       );

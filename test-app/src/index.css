@@ -1,6 +1,7 @@
 body {
   font: 14px "Century Gothic", Futura, sans-serif;
   margin: 20px;
+  background: rgb(165, 165, 165);
 }
 
 ol, ul {
@@ -18,7 +19,7 @@ ol, ul {
 }
 
 .square {
-  background: #fff;
+  background: rgb(145, 188, 201);
   border: 1px solid #999;
   float: left;
   font-size: 24px;
@@ -30,6 +31,16 @@ ol, ul {
   padding: 0;
   text-align: center;
   width: 34px;
+  box-shadow: inset -1px -1px rgb(61, 61, 61), inset 1px 1px rgb(224, 224, 224);
+}
+
+.square:hover {
+  background: rgb(123, 159, 172);
+}
+
+.square:active {
+  box-shadow: inset -1px -1px rgb(224, 224, 224), inset 1px 1px rgb(61, 61, 61);
+  background: rgb(123, 159, 172);
 }
 
 .square:focus {
