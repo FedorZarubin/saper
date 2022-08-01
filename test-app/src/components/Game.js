@@ -12,22 +12,98 @@ class Game extends React.Component {
       };
       this.handleClick = this.handleClick.bind(this);
       this.handleSettings = this.handleSettings.bind(this)
+      this.handleReset = this.handleReset.bind(this)
     }
-  
+
+    minesAround(r,c,map) {
+      let n = 0;
+      for (let i=r-1;i<=r+1;i++) {
+        if (i<0||i>=map.length) continue;
+        for (let j=c-1;j<=c+1;j++){
+          if (j<0||j>=map[0].length) continue;
+          if (map[i][j][0]==="mine") n++;
+          // console.log(i+"/"+j+": "+n)
+        }
+      };
+      // console.log(r+"/"+c+": "+n)
+      return n
+    }
+
+    openCell (r,c,map) {
+      // if (map[r][c][1] === map[r][c][0]) return map;
+      const queue = [];
+      queue.push([r,c])
+      do {
+        // console.log(r+"/"+c+": "+val);
+        const [x,y] = queue[0];
+        const val = map[x][y][0];
+        if (map[x][y][1] !== val) {
+          map[x][y][1] = val;
+          if (val===0){
+            for (let i=x-1;i<=x+1;i++) {
+              if (i<0||i>=map.length) continue;
+              for (let j=y-1;j<=y+1;j++){
+                if (j<0||j>=map[0].length) continue;
+                queue.push([i,j])
+              }
+            }  
+          };
+        }
+        queue.shift()        
+      } while (queue.length>0);
+      
+      return map
+    }
+
     handleClick (r,c,e) {
       e.preventDefault();
       const button = e.button;
-      if (button===2) {
-        const flag = this.state.cellMap[r][c][1];
-        const minesLeft = flag ? this.state.minesLeft+1 : this.state.minesLeft-1;
-        const newMap = JSON.parse(JSON.stringify(this.state.cellMap));
-        newMap[r][c][1] = !flag;
-        this.setState({
-          cellMap:newMap,
-          minesLeft: minesLeft
-        })
+      let gameStatus = this.state.gameStatus;
+      if (gameStatus !== "Let's begin!") return;
+      const val = this.state.cellMap[r][c][1];
+      let newMap = JSON.parse(JSON.stringify(this.state.cellMap));
+      let minesLeft = this.state.minesLeft;
+      if (button===2) {                       //right click
+        if (!val&&minesLeft>0) {
+          newMap[r][c][1] = "flag";
+          minesLeft--
+        } else if (val==="flag") {
+          newMap[r][c][1] = null;
+          minesLeft++
+        } else return;
+      } else if (button===0){                 //left click
+        if (val) return;
+        if(newMap[r][c][0]==="mine"){         //mine!
+          for (let i=0;i<newMap.length;i++) {
+            const row = newMap[i];
+            for (let j=0;j<row.length;j++) {
+              if(row[j][0]==="mine") row[j][1] = "mine"
+            }
+          };
+          gameStatus = "Booooooom!!!"
+        } else {                              // no mine
+          newMap = this.openCell(r,c,newMap);
+          if (newMap.every((r,i)=>{return r.every((c)=>{return (c[0]==="mine"||c[1]!==null)})})){
+            gameStatus = "You win!!!"
+          }
+        }
       }
+      
+      this.setState({
+        cellMap: newMap,
+        minesLeft: minesLeft,
+        gameStatus: gameStatus
+      })
+    }
 
+    handleReset () {
+      this.setState(
+        {
+          cellMap: null,
+          gameStatus: "Let's begin!",
+          minesLeft: null
+        }
+      )
     }
 
     handleSettings (e) {
@@ -45,12 +121,19 @@ class Game extends React.Component {
         return array;
       };
       const mineCount = Math.round(size.h*size.w*difclt/100);
-      const mineMask = shuffle(Array(size.h*size.w).fill([true,false],0,mineCount).fill([false,false],mineCount));
-      const cellMap = [];
+      const mineMask = shuffle(Array(size.h*size.w).fill(["mine",null],0,mineCount).fill([null,null],mineCount));
+      let cellMap = [];
       for (let i=0; i<mineMask.length; i+=size.w) {
         cellMap.push(mineMask.slice(i,i+size.w));
-      }
-      console.log(cellMap);
+      };
+
+      cellMap = cellMap.map((r,i)=>{ return r.map((c,j)=>{
+        return [
+          c[0]==="mine" ? "mine" : this.minesAround(i,j,cellMap),
+          null
+        ]
+      })})
+
       this.setState({
         cellMap: cellMap,
         minesLeft: mineCount
@@ -81,6 +164,8 @@ class Game extends React.Component {
           <div className="game-info">
             <div>{gameStatus}</div>
             <div>Mines left: {minesLeft}</div>
+            <div></div>
+            <div><button onClick={this.handleReset}>Start new game</button></div>
           </div>
         </div>
       );
