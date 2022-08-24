@@ -8,7 +8,8 @@ class Game extends React.Component {
       this.state = {
         cellMap: null,
         gameStatus: "Let's begin!",
-        minesLeft: null
+        minesLeft: null,
+        difficulty: 0
       };
       this.handleClick = this.handleClick.bind(this);
       this.handleSettings = this.handleSettings.bind(this)
@@ -22,19 +23,15 @@ class Game extends React.Component {
         for (let j=c-1;j<=c+1;j++){
           if (j<0||j>=map[0].length) continue;
           if (map[i][j][0]==="mine") n++;
-          // console.log(i+"/"+j+": "+n)
         }
       };
-      // console.log(r+"/"+c+": "+n)
       return n
     }
 
     openCell (r,c,map) {
-      // if (map[r][c][1] === map[r][c][0]) return map;
       const queue = [];
       queue.push([r,c])
       do {
-        // console.log(r+"/"+c+": "+val);
         const [x,y] = queue[0];
         const val = map[x][y][0];
         if (map[x][y][1] !== val) {
@@ -107,12 +104,13 @@ class Game extends React.Component {
     }
 
     handleSettings (e) {
+      console.log(e);
       e.preventDefault();
       const size = {
         w: Number(e.target.w.value),
         h: Number(e.target.h.value)
       };
-      const difclt = e.target.d.value;
+      const diffclt = e.target.d.value;
       const shuffle = function (array) {
         for (let i = array.length - 1; i > 0; i--) {
           let j = Math.floor(Math.random() * (i + 1)); 
@@ -120,7 +118,7 @@ class Game extends React.Component {
         };
         return array;
       };
-      const mineCount = Math.round(size.h*size.w*difclt/100);
+      const mineCount = Math.round(size.h*size.w*diffclt/100);
       const mineMask = shuffle(Array(size.h*size.w).fill(["mine",null],0,mineCount).fill([null,null],mineCount));
       let cellMap = [];
       for (let i=0; i<mineMask.length; i+=size.w) {
@@ -136,7 +134,9 @@ class Game extends React.Component {
 
       this.setState({
         cellMap: cellMap,
-        minesLeft: mineCount
+        minesLeft: mineCount,
+        difficulty: diffclt,
+        gameStatus: "Let's begin!"
       })
     }
       
@@ -149,7 +149,7 @@ class Game extends React.Component {
         return (
           <FieldSettings
           handleSettings={this.handleSettings}
-          defDifclt={15}
+          defDiffclt={15}
           />
         );
       };
@@ -164,8 +164,25 @@ class Game extends React.Component {
           <div className="game-info">
             <div>{gameStatus}</div>
             <div>Mines left: {minesLeft}</div>
-            <div></div>
+            <div><br/></div>
             <div><button onClick={this.handleReset}>Start new game</button></div>
+            <div><br/></div>
+            <div><button onClick={() => {
+              const w = this.state.cellMap[0].length;
+              const h = this.state.cellMap.length;
+              const d = this.state.difficulty;
+              const e = {
+                preventDefault: function () {
+                  return null
+                },
+                target: {
+                  w: {value: w},
+                  h: {value: h},
+                  d: {value: d}
+                }
+              };
+              this.handleSettings(e)
+              }}>Start new same  game</button></div>
           </div>
         </div>
       );

@@ -14,7 +14,7 @@ class FieldSettings extends React.Component {
                 </div>
                 <div>
                     <span>Choose the difficulty </span>
-                    <select name="d" defaultValue={this.props.defDifclt}>
+                    <select name="d" defaultValue={this.props.defDiffclt}>
                         <option value={10}>Beginner</option>
                         <option value={15}>Normal</option>
                         <option value={20}>Hard</option>

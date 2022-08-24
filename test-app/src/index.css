@@ -74,7 +74,7 @@ ol, ul {
   color: brown;
 }
 
-.square:hover {
+.square[val="null"]:hover,.square[val=flag]:hover {
   background: rgb(123, 159, 172);
 }
 
