@@ -1,6 +1,7 @@
 import React from 'react';
 import Board from './Board';
 import FieldSettings from './FieldSettings';
+import util from '../util';
 
 class Game extends React.Component {
     constructor(props) {
@@ -14,42 +15,6 @@ class Game extends React.Component {
       this.handleClick = this.handleClick.bind(this);
       this.handleSettings = this.handleSettings.bind(this)
       this.handleReset = this.handleReset.bind(this)
-    }
-
-    minesAround(r,c,map) {
-      let n = 0;
-      for (let i=r-1;i<=r+1;i++) {
-        if (i<0||i>=map.length) continue;
-        for (let j=c-1;j<=c+1;j++){
-          if (j<0||j>=map[0].length) continue;
-          if (map[i][j][0]==="mine") n++;
-        }
-      };
-      return n
-    }
-
-    openCell (r,c,map) {
-      const queue = [];
-      queue.push([r,c])
-      do {
-        const [x,y] = queue[0];
-        const val = map[x][y][0];
-        if (map[x][y][1] !== val) {
-          map[x][y][1] = val;
-          if (val===0){
-            for (let i=x-1;i<=x+1;i++) {
-              if (i<0||i>=map.length) continue;
-              for (let j=y-1;j<=y+1;j++){
-                if (j<0||j>=map[0].length) continue;
-                queue.push([i,j])
-              }
-            }  
-          };
-        }
-        queue.shift()        
-      } while (queue.length>0);
-      
-      return map
     }
 
     handleClick (r,c,e) {
@@ -79,7 +44,7 @@ class Game extends React.Component {
           };
           gameStatus = "Booooooom!!!"
         } else {                              // no mine
-          newMap = this.openCell(r,c,newMap);
+          newMap = util.openCell(r,c,newMap);
           if (newMap.every((r,i)=>{return r.every((c)=>{return (c[0]==="mine"||c[1]!==null)})})){
             gameStatus = "You win!!!"
           }
@@ -127,7 +92,7 @@ class Game extends React.Component {
 
       cellMap = cellMap.map((r,i)=>{ return r.map((c,j)=>{
         return [
-          c[0]==="mine" ? "mine" : this.minesAround(i,j,cellMap),
+          c[0]==="mine" ? "mine" : util.minesAround(i,j,cellMap),
           null
         ]
       })})
